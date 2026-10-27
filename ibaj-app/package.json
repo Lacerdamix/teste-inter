@@ -1,0 +1,21 @@
+{
+  "name": "ibaj-app",
+  "private": true,
+  "workspaces": [
+    "api",
+    "web"
+  ],
+  "scripts": {
+    "db:up": "docker compose up -d db",
+    "db:migrate": "npm run migrate -w api",
+    "db:seed": "npm run seed -w api",
+    "dev": "concurrently -n api,web -c green,blue \"npm run dev -w api\" \"npm run dev -w web\"",
+    "build": "npm run build -w web && npm run build -w api",
+    "start": "npm run start -w api",
+    "typecheck": "npm run typecheck -w api && npm run typecheck -w web",
+    "test": "npm test -w api"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

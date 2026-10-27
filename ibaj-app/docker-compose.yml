@@ -1,0 +1,18 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ibaj
+      POSTGRES_PASSWORD: ibaj
+      POSTGRES_DB: ibaj
+    ports:
+      - "5432:5432"
+    volumes:
+      - ibaj-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ibaj"]
+      interval: 5s
+      retries: 10
+
+volumes:
+  ibaj-db:
