@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Controle de Impressão</title>
+<style>
+  :root {
+    --bg: #f5f6f8; --card: #ffffff; --text: #1d2330; --muted: #667085;
+    --border: #d0d5dd; --accent: #ff7a00; --accent-text: #ffffff;
+    --danger: #d92d20; --row: #f9fafb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#12151b; --card:#1b2029; --text:#e6e8ec; --muted:#98a2b3;
+            --border:#344054; --row:#202632; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+         background:var(--bg); color:var(--text); }
+  main { max-width: 1000px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  p.sub { color: var(--muted); margin: 0 0 20px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:12px;
+          padding:20px; margin-bottom:20px; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:14px; }
+  label { display:block; font-size:.85rem; font-weight:600; margin-bottom:6px; }
+  input, select, textarea { width:100%; padding:10px; border:1px solid var(--border);
+          border-radius:8px; background:var(--card); color:var(--text); font:inherit; }
+  textarea { min-height: 60px; resize: vertical; }
+  .full { grid-column: 1 / -1; }
+  .radios { display:flex; gap:10px; flex-wrap:wrap; }
+  .radios label { font-weight:500; display:flex; align-items:center; gap:6px;
+          border:1px solid var(--border); border-radius:8px; padding:9px 12px; cursor:pointer; margin:0; }
+  .radios input { width:auto; }
+  .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; align-items:center; }
+  button { border:0; border-radius:8px; padding:10px 16px; font:inherit; font-weight:600; cursor:pointer; }
+  .primary { background:var(--accent); color:var(--accent-text); }
+  .secondary { background:transparent; color:var(--text); border:1px solid var(--border); }
+  .link-danger { background:none; color:var(--danger); padding:4px 8px; }
+  .total { color:var(--muted); font-size:.9rem; }
+  .stats { display:grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap:12px; margin-bottom:16px; }
+  .stat { border:1px solid var(--border); border-radius:10px; padding:12px; }
+  .stat b { display:block; font-size:1.4rem; }
+  .stat span { color:var(--muted); font-size:.8rem; }
+  .filters { display:grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap:10px; margin-bottom:12px; }
+  .table-wrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:.9rem; }
+  th, td { text-align:left; padding:8px; border-bottom:1px solid var(--border); white-space:nowrap; }
+  tbody tr:nth-child(even) { background:var(--row); }
+  .tag { padding:2px 8px; border-radius:99px; font-size:.75rem; font-weight:600; }
+  .tag.cor { background:#fde7d1; color:#9a4a00; }
+  .tag.pb { background:#e4e7ec; color:#344054; }
+  .empty { color:var(--muted); text-align:center; padding:20px; }
+  .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#12b76a;
+           color:#fff; padding:10px 18px; border-radius:8px; opacity:0; transition:opacity .3s; }
+  .toast.show { opacity:1; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Controle de Impressão e Boulevard</h1>
+  <p class="sub">Registre cada solicitação de impressão. Os registros ficam salvos neste navegador e podem ser exportados em CSV.</p>
+
+  <form id="form" class="card" autocomplete="off">
+    <div class="grid">
+      <div>
+        <label for="data">Data *</label>
+        <input type="date" id="data" required>
+      </div>
+      <div>
+        <label for="nome">Nome do solicitante *</label>
+        <input type="text" id="nome" required placeholder="Ex.: Maria Silva">
+      </div>
+      <div>
+        <label for="setor">Setor / Departamento</label>
+        <input type="text" id="setor" placeholder="Ex.: Financeiro">
+      </div>
+      <div>
+        <label for="servico">Serviço *</label>
+        <select id="servico" required>
+          <option value="Impressão">Impressão</option>
+          <option value="Boulevard">Boulevard</option>
+          <option value="Cópia / Xerox">Cópia / Xerox</option>
+          <option value="Digitalização">Digitalização</option>
+          <option value="Outro">Outro</option>
+        </select>
+      </div>
+
+      <div class="full">
+        <label>Tipo de impressão *</label>
+        <div class="radios">
+          <label><input type="radio" name="cor" value="Preto e branco" checked> Preto e branco</label>
+          <label><input type="radio" name="cor" value="Colorida"> Colorida</label>
+        </div>
+      </div>
+
+      <div>
+        <label for="papel">Tamanho do papel</label>
+        <select id="papel">
+          <option>A4</option><option>A3</option><option>Ofício</option>
+          <option>Carta</option><option>A5</option><option>Outro</option>
+        </select>
+      </div>
+      <div>
+        <label for="lados">Frente / verso</label>
+        <select id="lados">
+          <option value="Só frente">Só frente</option>
+          <option value="Frente e verso">Frente e verso</option>
+        </select>
+      </div>
+      <div>
+        <label for="paginas">Páginas do documento *</label>
+        <input type="number" id="paginas" min="1" value="1" required>
+      </div>
+      <div>
+        <label for="copias">Nº de cópias *</label>
+        <input type="number" id="copias" min="1" value="1" required>
+      </div>
+      <div>
+        <label for="documento">Documento / finalidade</label>
+        <input type="text" id="documento" placeholder="Ex.: Contrato cliente X">
+      </div>
+      <div>
+        <label for="responsavel">Responsável pela impressão</label>
+        <input type="text" id="responsavel" placeholder="Quem imprimiu">
+      </div>
+      <div class="full">
+        <label for="obs">Observações</label>
+        <textarea id="obs" placeholder="Informações adicionais"></textarea>
+      </div>
+    </div>
+    <div class="actions">
+      <button type="submit" class="primary">Registrar</button>
+      <button type="reset" class="secondary">Limpar</button>
+      <span class="total" id="preview"></span>
+    </div>
+  </form>
+
+  <section class="card">
+    <h2 style="margin-top:0;font-size:1.15rem">Registros</h2>
+    <div class="stats">
+      <div class="stat"><b id="sRegistros">0</b><span>Registros</span></div>
+      <div class="stat"><b id="sPaginas">0</b><span>Páginas impressas</span></div>
+      <div class="stat"><b id="sPB">0</b><span>Páginas P&amp;B</span></div>
+      <div class="stat"><b id="sCor">0</b><span>Páginas coloridas</span></div>
+      <div class="stat"><b id="sFolhas">0</b><span>Folhas de papel</span></div>
+    </div>
+    <div class="filters">
+      <input type="search" id="fBusca" placeholder="Buscar nome, setor, documento…">
+      <select id="fServico"><option value="">Todos os serviços</option></select>
+      <select id="fCor"><option value="">Todas as cores</option><option>Preto e branco</option><option>Colorida</option></select>
+      <input type="date" id="fDe" title="De">
+      <input type="date" id="fAte" title="Até">
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Data</th><th>Nome</th><th>Setor</th><th>Serviço</th><th>Cor</th><th>Papel</th>
+          <th>Lados</th><th>Págs</th><th>Cópias</th><th>Total págs</th><th>Folhas</th>
+          <th>Documento</th><th>Responsável</th><th>Obs.</th><th></th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="actions">
+      <button class="primary" id="btnCsv" type="button">Exportar CSV (filtrado)</button>
+      <button class="secondary" id="btnImport" type="button">Importar CSV</button>
+      <input type="file" id="fileImport" accept=".csv" hidden>
+      <button class="link-danger" id="btnLimpar" type="button">Apagar todos</button>
+    </div>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY = 'controle-impressao-v1';
+const $ = id => document.getElementById(id);
+const SERVICOS = ['Impressão','Boulevard','Cópia / Xerox','Digitalização','Outro'];
+const COLS = [
+  ['data','Data'],['nome','Nome'],['setor','Setor'],['servico','Serviço'],['cor','Cor'],
+  ['papel','Papel'],['lados','Lados'],['paginas','Páginas'],['copias','Cópias'],
+  ['totalPaginas','Total páginas'],['folhas','Folhas'],['documento','Documento'],
+  ['responsavel','Responsável'],['obs','Observações']
+];
+
+function load() {
+  try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch { return []; }
+}
+function save(list) {
+  try { localStorage.setItem(KEY, JSON.stringify(list)); }
+  catch { alert('Não foi possível salvar neste navegador. Exporte o CSV para não perder os dados.'); }
+}
+let registros = load();
+
+function calc(paginas, copias, lados) {
+  const totalPaginas = paginas * copias;
+  const folhas = lados === 'Frente e verso' ? Math.ceil(paginas / 2) * copias : totalPaginas;
+  return { totalPaginas, folhas };
+}
+function toast(msg) {
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function fmtData(d) { return d ? d.split('-').reverse().join('/') : ''; }
+function hoje() {
+  const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0,10);
+}
+
+function updatePreview() {
+  const p = +$('paginas').value || 0, c = +$('copias').value || 0;
+  const { totalPaginas, folhas } = calc(p, c, $('lados').value);
+  $('preview').textContent = `Total: ${totalPaginas} página(s) · ${folhas} folha(s)`;
+}
+['paginas','copias','lados'].forEach(id => $(id).addEventListener('input', updatePreview));
+
+$('form').addEventListener('submit', e => {
+  e.preventDefault();
+  const paginas = Math.max(1, parseInt($('paginas').value, 10) || 1);
+  const copias = Math.max(1, parseInt($('copias').value, 10) || 1);
+  const lados = $('lados').value;
+  const r = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+    data: $('data').value, nome: $('nome').value.trim(), setor: $('setor').value.trim(),
+    servico: $('servico').value, cor: document.querySelector('input[name=cor]:checked').value,
+    papel: $('papel').value, lados, paginas, copias, ...calc(paginas, copias, lados),
+    documento: $('documento').value.trim(), responsavel: $('responsavel').value.trim(),
+    obs: $('obs').value.trim()
+  };
+  registros.unshift(r); save(registros);
+  const nome = r.nome, data = r.data, setor = r.setor, responsavel = r.responsavel;
+  $('form').reset();
+  // mantém dados que costumam se repetir
+  $('data').value = data; $('nome').value = nome; $('setor').value = setor; $('responsavel').value = responsavel;
+  updatePreview(); render(); toast('Registro salvo!');
+});
+$('form').addEventListener('reset', () => setTimeout(() => { $('data').value = hoje(); updatePreview(); }));
+
+function filtrados() {
+  const q = $('fBusca').value.toLowerCase(), s = $('fServico').value, c = $('fCor').value;
+  const de = $('fDe').value, ate = $('fAte').value;
+  return registros.filter(r =>
+    (!q || [r.nome, r.setor, r.documento, r.responsavel, r.obs].join(' ').toLowerCase().includes(q)) &&
+    (!s || r.servico === s) && (!c || r.cor === c) &&
+    (!de || r.data >= de) && (!ate || r.data <= ate));
+}
+
+function render() {
+  const list = filtrados();
+  const sum = (arr, k) => arr.reduce((a, r) => a + (+r[k] || 0), 0);
+  $('sRegistros').textContent = list.length;
+  $('sPaginas').textContent = sum(list, 'totalPaginas');
+  $('sPB').textContent = sum(list.filter(r => r.cor === 'Preto e branco'), 'totalPaginas');
+  $('sCor').textContent = sum(list.filter(r => r.cor === 'Colorida'), 'totalPaginas');
+  $('sFolhas').textContent = sum(list, 'folhas');
+  $('tbody').innerHTML = list.length ? list.map(r => `<tr>
+      <td>${fmtData(r.data)}</td><td>${esc(r.nome)}</td><td>${esc(r.setor)}</td><td>${esc(r.servico)}</td>
+      <td><span class="tag ${r.cor === 'Colorida' ? 'cor' : 'pb'}">${esc(r.cor)}</span></td>
+      <td>${esc(r.papel)}</td><td>${esc(r.lados)}</td><td>${r.paginas}</td><td>${r.copias}</td>
+      <td><b>${r.totalPaginas}</b></td><td>${r.folhas}</td><td>${esc(r.documento)}</td>
+      <td>${esc(r.responsavel)}</td><td>${esc(r.obs)}</td>
+      <td><button class="link-danger" data-del="${r.id}">Excluir</button></td></tr>`).join('')
+    : `<tr><td colspan="15" class="empty">Nenhum registro encontrado.</td></tr>`;
+}
+$('tbody').addEventListener('click', e => {
+  const id = e.target.dataset.del;
+  if (id && confirm('Excluir este registro?')) {
+    registros = registros.filter(r => r.id !== id); save(registros); render();
+  }
+});
+['fBusca','fServico','fCor','fDe','fAte'].forEach(id => $(id).addEventListener('input', render));
+
+function csvCell(v) { const s = String(v ?? ''); return /[";\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
+$('btnCsv').addEventListener('click', () => {
+  const list = filtrados();
+  if (!list.length) return toast('Nada para exportar');
+  // separador ";" abre direto no Excel em português
+  const lines = [COLS.map(c => c[1]).join(';'), ...list.map(r => COLS.map(([k]) => csvCell(k === 'data' ? fmtData(r[k]) : r[k])).join(';'))];
+  const blob = new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = `controle-impressao-${hoje()}.csv`; a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+function parseCsv(text) {
+  const rows = []; let row = [], cell = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (q) { if (ch === '"') { if (text[i+1] === '"') { cell += '"'; i++; } else q = false; } else cell += ch; }
+    else if (ch === '"') q = true;
+    else if (ch === ';') { row.push(cell); cell = ''; }
+    else if (ch === '\n' || ch === '\r') { if (ch === '\r' && text[i+1] === '\n') i++; row.push(cell); rows.push(row); row = []; cell = ''; }
+    else cell += ch;
+  }
+  if (cell || row.length) { row.push(cell); rows.push(row); }
+  return rows.filter(r => r.some(c => c !== ''));
+}
+$('btnImport').addEventListener('click', () => $('fileImport').click());
+$('fileImport').addEventListener('change', async e => {
+  const f = e.target.files[0]; if (!f) return;
+  const rows = parseCsv((await f.text()).replace(/^﻿/, ''));
+  const head = rows.shift() || [];
+  const idx = COLS.map(([, label]) => head.indexOf(label));
+  if (idx[1] < 0) { alert('CSV inválido: use um arquivo exportado por este formulário.'); return; }
+  const novos = rows.map(cells => {
+    const r = { id: Date.now().toString(36) + Math.random().toString(36).slice(2,8) };
+    COLS.forEach(([k], i) => r[k] = idx[i] >= 0 ? cells[idx[i]] ?? '' : '');
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(r.data)) r.data = r.data.split('/').reverse().join('-');
+    ['paginas','copias','totalPaginas','folhas'].forEach(k => r[k] = +r[k] || 0);
+    return r;
+  });
+  registros = [...novos, ...registros]; save(registros); render();
+  toast(`${novos.length} registro(s) importado(s)`); e.target.value = '';
+});
+$('btnLimpar').addEventListener('click', () => {
+  if (registros.length && confirm('Apagar TODOS os registros? Exporte o CSV antes, se precisar.')) {
+    registros = []; save(registros); render();
+  }
+});
+
+SERVICOS.forEach(s => $('fServico').insertAdjacentHTML('beforeend', `<option>${s}</option>`));
+$('data').value = hoje();
+updatePreview(); render();
+</script>
+</body>
+</html>
