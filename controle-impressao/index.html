@@ -72,6 +72,10 @@
         <input type="text" id="nome" required placeholder="Ex.: Maria Silva">
       </div>
       <div>
+        <label for="ministerio">Ministério *</label>
+        <input type="text" id="ministerio" required placeholder="Ex.: Louvor">
+      </div>
+      <div>
         <label for="setor">Setor / Departamento</label>
         <input type="text" id="setor" placeholder="Ex.: Financeiro">
       </div>
@@ -146,7 +150,7 @@
       <div class="stat"><b id="sFolhas">0</b><span>Folhas de papel</span></div>
     </div>
     <div class="filters">
-      <input type="search" id="fBusca" placeholder="Buscar nome, setor, documento…">
+      <input type="search" id="fBusca" placeholder="Buscar nome, ministério, documento…">
       <select id="fServico"><option value="">Todos os serviços</option></select>
       <select id="fCor"><option value="">Todas as cores</option><option>Preto e branco</option><option>Colorida</option></select>
       <input type="date" id="fDe" title="De">
@@ -155,7 +159,7 @@
     <div class="table-wrap">
       <table>
         <thead><tr>
-          <th>Data</th><th>Nome</th><th>Setor</th><th>Serviço</th><th>Cor</th><th>Papel</th>
+          <th>Data</th><th>Nome</th><th>Ministério</th><th>Setor</th><th>Serviço</th><th>Cor</th><th>Papel</th>
           <th>Lados</th><th>Págs</th><th>Cópias</th><th>Total págs</th><th>Folhas</th>
           <th>Documento</th><th>Responsável</th><th>Obs.</th><th></th>
         </tr></thead>
@@ -177,7 +181,7 @@ const KEY = 'controle-impressao-v1';
 const $ = id => document.getElementById(id);
 const SERVICOS = ['Impressão','Boulevard','Cópia / Xerox','Digitalização','Outro'];
 const COLS = [
-  ['data','Data'],['nome','Nome'],['setor','Setor'],['servico','Serviço'],['cor','Cor'],
+  ['data','Data'],['nome','Nome'],['ministerio','Ministério'],['setor','Setor'],['servico','Serviço'],['cor','Cor'],
   ['papel','Papel'],['lados','Lados'],['paginas','Páginas'],['copias','Cópias'],
   ['totalPaginas','Total páginas'],['folhas','Folhas'],['documento','Documento'],
   ['responsavel','Responsável'],['obs','Observações']
@@ -224,17 +228,17 @@ $('form').addEventListener('submit', e => {
   const lados = $('lados').value;
   const r = {
     id: Date.now().toString(36) + Math.random().toString(36).slice(2,6),
-    data: $('data').value, nome: $('nome').value.trim(), setor: $('setor').value.trim(),
+    data: $('data').value, nome: $('nome').value.trim(), ministerio: $('ministerio').value.trim(), setor: $('setor').value.trim(),
     servico: $('servico').value, cor: document.querySelector('input[name=cor]:checked').value,
     papel: $('papel').value, lados, paginas, copias, ...calc(paginas, copias, lados),
     documento: $('documento').value.trim(), responsavel: $('responsavel').value.trim(),
     obs: $('obs').value.trim()
   };
   registros.unshift(r); save(registros);
-  const nome = r.nome, data = r.data, setor = r.setor, responsavel = r.responsavel;
+  const nome = r.nome, ministerio = r.ministerio, data = r.data, setor = r.setor, responsavel = r.responsavel;
   $('form').reset();
   // mantém dados que costumam se repetir
-  $('data').value = data; $('nome').value = nome; $('setor').value = setor; $('responsavel').value = responsavel;
+  $('data').value = data; $('nome').value = nome; $('ministerio').value = ministerio; $('setor').value = setor; $('responsavel').value = responsavel;
   updatePreview(); render(); toast('Registro salvo!');
 });
 $('form').addEventListener('reset', () => setTimeout(() => { $('data').value = hoje(); updatePreview(); }));
@@ -243,7 +247,7 @@ function filtrados() {
   const q = $('fBusca').value.toLowerCase(), s = $('fServico').value, c = $('fCor').value;
   const de = $('fDe').value, ate = $('fAte').value;
   return registros.filter(r =>
-    (!q || [r.nome, r.setor, r.documento, r.responsavel, r.obs].join(' ').toLowerCase().includes(q)) &&
+    (!q || [r.nome, r.ministerio, r.setor, r.documento, r.responsavel, r.obs].join(' ').toLowerCase().includes(q)) &&
     (!s || r.servico === s) && (!c || r.cor === c) &&
     (!de || r.data >= de) && (!ate || r.data <= ate));
 }
@@ -257,13 +261,13 @@ function render() {
   $('sCor').textContent = sum(list.filter(r => r.cor === 'Colorida'), 'totalPaginas');
   $('sFolhas').textContent = sum(list, 'folhas');
   $('tbody').innerHTML = list.length ? list.map(r => `<tr>
-      <td>${fmtData(r.data)}</td><td>${esc(r.nome)}</td><td>${esc(r.setor)}</td><td>${esc(r.servico)}</td>
+      <td>${fmtData(r.data)}</td><td>${esc(r.nome)}</td><td>${esc(r.ministerio)}</td><td>${esc(r.setor)}</td><td>${esc(r.servico)}</td>
       <td><span class="tag ${r.cor === 'Colorida' ? 'cor' : 'pb'}">${esc(r.cor)}</span></td>
       <td>${esc(r.papel)}</td><td>${esc(r.lados)}</td><td>${r.paginas}</td><td>${r.copias}</td>
       <td><b>${r.totalPaginas}</b></td><td>${r.folhas}</td><td>${esc(r.documento)}</td>
       <td>${esc(r.responsavel)}</td><td>${esc(r.obs)}</td>
       <td><button class="link-danger" data-del="${r.id}">Excluir</button></td></tr>`).join('')
-    : `<tr><td colspan="15" class="empty">Nenhum registro encontrado.</td></tr>`;
+    : `<tr><td colspan="16" class="empty">Nenhum registro encontrado.</td></tr>`;
 }
 $('tbody').addEventListener('click', e => {
   const id = e.target.dataset.del;
